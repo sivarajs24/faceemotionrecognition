@@ -2,15 +2,22 @@
 Flask Web Application for Facial Emotion Recognition
 """
 
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow logs
+
 from flask import Flask, render_template, Response, jsonify, request
 import cv2
 import numpy as np
-from tensorflow.keras.models import load_model
 import logging
 from pathlib import Path
 import time
 import base64
 import json
+
+# Import TensorFlow separately
+import tensorflow as tf
+tf.get_logger().setLevel('ERROR')
+from tensorflow.keras.models import load_model
 
 import config
 from utils import suppress_tf_warnings
@@ -39,9 +46,56 @@ EMOTION_COLORS = {
     'Fear': '#800080',
     'Happy': '#FFFF00',
     'Neutral': '#C8C8C8',
-    'Sad': '#FF6400',
+    'Sad': "#002FFF",
     'Surprise': '#FFA500'
 }
+
+EMOTION_COLOR_BGR = {
+    'Angry': (0, 0, 255),
+    'Disgust': (113, 204, 46),
+    'Fear': (128, 0, 128),
+    'Happy': (0, 255, 255),
+    'Neutral': (192, 192, 192),
+    'Sad': (219, 152, 52),
+    'Surprise': (0, 165, 255)
+}
+
+_IDLE_FRAME_CACHE = None
+
+
+def build_idle_frame():
+    """Create a stylized idle frame for the UI."""
+    base = np.zeros((480, 640, 3), dtype=np.uint8)
+    base[:] = (40, 32, 96)
+
+    overlay = base.copy()
+    cv2.circle(overlay, (180, 180), 160, (80, 56, 160), -1)
+    cv2.circle(overlay, (520, 280), 180, (60, 72, 170), -1)
+    cv2.rectangle(overlay, (0, 360), (640, 480), (34, 24, 90), -1)
+    idle_frame = cv2.addWeighted(overlay, 0.55, base, 0.45, 0)
+
+    cv2.putText(idle_frame, 'FacialEmotion Recognition', (110, 210),
+                cv2.FONT_HERSHEY_DUPLEX, 1.1, (245, 245, 255), 2, cv2.LINE_AA)
+    cv2.putText(idle_frame, 'Session paused', (210, 255),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.85, (200, 200, 255), 2, cv2.LINE_AA)
+    cv2.putText(idle_frame, "Tap 'Activate Session' to begin", (155, 300),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (180, 180, 230), 2, cv2.LINE_AA)
+
+    for x in range(0, 640, 40):
+        cv2.line(idle_frame, (x, 0), (x - 80, 80), (55, 48, 120), 1, cv2.LINE_AA)
+
+    cv2.circle(idle_frame, (540, 110), 12, (0, 255, 200), 2, cv2.LINE_AA)
+    cv2.circle(idle_frame, (540, 110), 5, (0, 255, 200), -1)
+
+    return idle_frame
+
+
+def get_idle_frame():
+    """Return a cached copy of the idle frame."""
+    global _IDLE_FRAME_CACHE
+    if _IDLE_FRAME_CACHE is None:
+        _IDLE_FRAME_CACHE = build_idle_frame()
+    return _IDLE_FRAME_CACHE.copy()
 
 
 def load_resources():
@@ -119,13 +173,8 @@ def generate_frames():
     
     while True:
         if not camera_active:
-            # Create a blank frame when camera is off
-            blank_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-            cv2.putText(blank_frame, "Camera Stopped", (180, 240),
-                       cv2.FONT_HERSHEY_DUPLEX, 1.5, (255, 255, 255), 2)
-            cv2.putText(blank_frame, "Click 'Start Camera' to begin", (140, 280),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 200, 200), 1)
-            ret, buffer = cv2.imencode('.jpg', blank_frame)
+            idle_frame = get_idle_frame()
+            ret, buffer = cv2.imencode('.jpg', idle_frame)
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
@@ -173,16 +222,8 @@ def generate_frames():
             emotion_stats[emotion] += 1
             total_detections += 1
             
-            # Draw rectangle
-            color = (0, 255, 0)
-            if emotion == 'Angry':
-                color = (0, 0, 255)
-            elif emotion == 'Happy':
-                color = (0, 255, 255)
-            elif emotion == 'Sad':
-                color = (255, 100, 0)
-            elif emotion == 'Surprise':
-                color = (0, 165, 255)
+            # Draw rectangle with class-specific tint
+            color = EMOTION_COLOR_BGR.get(emotion, (0, 255, 0))
             
             cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
             
@@ -232,7 +273,7 @@ def stats():
     """Get emotion statistics"""
     global emotion_stats, total_detections
     
-    # Define colors for each emotion
+    # Define colors for each emotion (matching frontend)
     emotion_colors = {
         'Angry': '#e74c3c',
         'Disgust': '#8e44ad',
@@ -248,14 +289,18 @@ def stats():
         'total': total_detections
     }
     
-    # Calculate percentages and prepare emotion data
-    for emotion, count in emotion_stats.items():
+    # Ensure all 7 emotions are always in the response
+    for emotion in config.EMOTION_LABELS.values():
+        count = emotion_stats.get(emotion, 0)
         percentage = (count / total_detections * 100) if total_detections > 0 else 0
         stats_data['emotions'][emotion] = {
             'count': count,
             'percentage': round(percentage, 1),
             'color': emotion_colors.get(emotion, '#95a5a6')
         }
+    
+    # Debug log
+    print(f'Stats: total={total_detections}, emotions={emotion_stats}')
     
     return jsonify(stats_data)
 

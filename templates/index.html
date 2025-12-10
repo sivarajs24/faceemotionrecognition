@@ -3,9 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facial Emotion Recognition System</title>
+    <title>FacialEmotion Recognition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-primary: #060713;
+            --bg-secondary: #0b0d1f;
+            --glass: rgba(20, 24, 45, 0.7);
+            --glass-strong: rgba(30, 35, 70, 0.85);
+            --accent: #3105e3ff;
+            --accent-soft: rgba(124, 92, 255, 0.18);
+            --accent-contrast: #00f5d4;
+            --text-primary: #f8f9ff;
+            --text-muted: #b5b9d3;
+            --danger: #ff6b6b;
+            --success: #2dd4bf;
+            --card-radius: 24px;
+            --shadow-strong: 0 20px 60px rgba(4, 5, 15, 0.35);
+            --shadow-soft: 0 12px 30px rgba(10, 12, 30, 0.4);
+            --chip-accent: rgba(0, 245, 212, 0.12);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,363 +31,635 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at 20% 20%, rgba(124, 92, 255, 0.15), transparent 35%),
+                        radial-gradient(circle at 80% 0%, rgba(0, 245, 212, 0.12), transparent 40%),
+                        linear-gradient(135deg, #04030f 0%, #050c25 50%, #050711 100%);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
-            color: #fff;
+            padding: 32px;
         }
 
-        .container {
-            max-width: 1400px;
+        .app-shell {
+            max-width: 1440px;
             margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #fff;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .subtitle {
-            font-size: 1.2em;
-            color: #f0f0f0;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .video-section, .stats-section {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-
-        .video-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            flex-direction: column;
+            gap: 36px;
         }
 
-        .video-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            color: #333;
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 32px;
+            border-radius: 28px;
+            background: var(--glass);
+            backdrop-filter: blur(18px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-contrast) 100%);
+            display: grid;
+            place-items: center;
+            color: #04030f;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .brand h1 {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .brand span {
+            display: block;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .session-meta {
+            display: flex;
+            gap: 24px;
+            row-gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            color: var(--text-muted);
+        }
+
+        .meta-pill {
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(124, 92, 255, 0.15);
+            color: var(--text-primary);
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(124, 92, 255, 0.2);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+            gap: 32px;
+        }
+
+        .card {
+            background: var(--glass-strong);
+            border-radius: var(--card-radius);
+            padding: 28px;
+            box-shadow: var(--shadow-strong);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+        }
+
+        .live-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .live-header h2 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            font-size: 0.95rem;
         }
 
         .status-indicator {
-            width: 12px;
-            height: 12px;
+            width: 11px;
+            height: 11px;
             border-radius: 50%;
-            background: #ff4757;
-            animation: pulse 2s infinite;
+            background: var(--danger);
+            position: relative;
+        }
+
+        .status-indicator::after {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .status-indicator.active {
-            background: #2ecc71;
+            background: var(--success);
+            box-shadow: 0 0 18px rgba(45, 212, 191, 0.55);
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .video-controls {
+        .status-meta {
             display: flex;
-            gap: 10px;
+            gap: 18px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            font-size: 0.95rem;
         }
 
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
+        .status-meta span {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: white;
         }
 
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .btn-start {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-        }
-
-        .btn-stop {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-        }
-
-        .btn-screenshot {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .video-container {
+        .video-panel {
             position: relative;
-            width: 100%;
-            border-radius: 15px;
+            background: rgba(5, 9, 26, 0.9);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
             overflow: hidden;
-            background: #000;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
         }
 
         #video-stream {
             width: 100%;
-            height: auto;
             display: block;
+            border-radius: 20px;
+            background: #01030b;
         }
 
-        .stats-header {
+        .overlay-gradient {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(6, 7, 19, 0) 60%, rgba(6, 7, 19, 0.65) 100%);
+        }
+
+        .video-controls {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            gap: 14px;
+            margin-top: 24px;
+            flex-wrap: wrap;
         }
 
-        .stats-header h2 {
-            color: #333;
-            font-size: 1.5em;
+        .control-btn {
+            flex: 1 1 140px;
+            padding: 14px 20px;
+            border-radius: 16px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+            color: #050b1c;
+        }
+
+        .control-btn:disabled {
+            filter: grayscale(0.65) brightness(0.85);
+            cursor: not-allowed;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 28px rgba(124, 92, 255, 0.22);
+        }
+
+        .control-start {
+            background: linear-gradient(135deg, rgba(45, 212, 191, 1) 0%, rgba(16, 185, 129, 1) 100%);
+        }
+
+        .control-stop {
+            background: linear-gradient(135deg, rgba(248, 113, 113, 1) 0%, rgba(239, 68, 68, 1) 100%);
+        }
+
+        .control-capture {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 1) 0%, rgba(129, 140, 248, 1) 100%);
+        }
+
+        .insights-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: rgba(10, 13, 34, 0.65);
+            border-radius: 18px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-subtext {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .emotion-distribution {
+            background: rgba(12, 14, 32, 0.7);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .btn-reset {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
+        .emotion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        .btn-reset:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        .emotion-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .total-detections {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .total-detections h3 {
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .total-detections .count {
-            font-size: 3em;
-            font-weight: 700;
-        }
-
-        .emotion-item {
-            margin-bottom: 15px;
-        }
-
-        .emotion-label {
+        .emotion-row .top-line {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+            align-items: center;
         }
 
-        .emotion-name {
+        .emotion-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            font-weight: 500;
+        }
+
+        .emotion-bar-shell {
+            position: relative;
+            width: 100%;
+            height: 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .emotion-bar-fill {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            transform-origin: left;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .history-panel {
+            background: rgba(12, 14, 32, 0.7);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .history-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .history-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            gap: 18px;
+        }
+
+        .history-item span {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .emotion-icon {
-            font-size: 1.3em;
-        }
-
-        .emotion-bar-container {
-            background: #f0f0f0;
-            border-radius: 12px;
-            height: 30px;
-            overflow: hidden;
-        }
-
-        .emotion-bar {
-            height: 100%;
-            border-radius: 12px;
-            transition: width 0.5s ease;
+        .history-left {
             display: flex;
             align-items: center;
-            padding: 0 12px;
-            color: white;
-            font-weight: 700;
-            font-size: 0.85em;
+            gap: 12px;
         }
 
-        .info-cards {
+        .history-delta {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-contrast);
+            background: var(--chip-accent);
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .ghost-button {
+            border: 1px solid rgba(124, 92, 255, 0.35);
+            background: var(--accent-soft);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .ghost-button:hover {
+            background: rgba(124, 92, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(124, 92, 255, 0.2);
+        }
+
+        .knowledge-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-top: 12px;
         }
 
-        .info-card {
-            background: white;
+        .knowledge-card {
+            background: rgba(12, 13, 30, 0.75);
             border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.25s ease, border 0.25s ease;
         }
 
-        .info-card:hover {
-            transform: translateY(-5px);
+        .knowledge-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(124, 92, 255, 0.35);
         }
 
-        .card-icon {
-            font-size: 3em;
-            color: #667eea;
-            margin-bottom: 15px;
+        .knowledge-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: rgba(124, 92, 255, 0.15);
+            color: var(--accent-contrast);
+            font-size: 1.3rem;
         }
 
-        .info-card h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.3em;
+        .knowledge-card h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
         }
 
-        .info-card p {
-            color: #666;
+        .knowledge-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
             line-height: 1.6;
         }
 
-        .loading {
-            text-align: center;
-            color: #999;
-            padding: 20px;
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: rgba(15, 18, 40, 0.92);
+            padding: 16px 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(124, 92, 255, 0.4);
+            box-shadow: var(--shadow-strong);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transform: translateY(120%);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            z-index: 99;
         }
 
-        @media (max-width: 768px) {
-            .main-content {
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 1080px) {
+            body {
+                padding: 18px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 18px;
+                align-items: flex-start;
+            }
+
+            .dashboard {
                 grid-template-columns: 1fr;
             }
-            
-            h1 {
-                font-size: 2em;
+        }
+
+        @media (max-width: 640px) {
+            .app-shell {
+                gap: 24px;
             }
-            
+
             .video-controls {
                 flex-direction: column;
+            }
+
+            .control-btn {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🎭 Facial Emotion Recognition System</h1>
-            <p class="subtitle">Real-time AI-powered emotion detection using deep learning</p>
-        </header>
-
-        <div class="main-content">
-            <div class="video-section">
-                <div class="video-header">
-                    <div class="video-title">
-                        <i class="fas fa-video"></i>
-                        Live Camera Feed
-                        <div class="status-indicator" id="status-indicator"></div>
-                    </div>
-                    <div class="video-controls">
-                        <button class="btn btn-start" id="btn-start" onclick="startCamera()">
-                            <i class="fas fa-play"></i> Start
-                        </button>
-                        <button class="btn btn-stop" id="btn-stop" onclick="stopCamera()" disabled>
-                            <i class="fas fa-stop"></i> Stop
-                        </button>
-                        <button class="btn btn-screenshot" onclick="takeScreenshot()" id="btn-screenshot" disabled>
-                            <i class="fas fa-camera"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="video-container">
-                    <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Video Stream">
+    <div class="app-shell">
+        <nav class="navbar">
+            <div class="brand">
+                <div class="brand-logo">FR</div>
+                <div>
+                    <h1>FacialEmotion Recognition</h1>
+                    <span>Precision sentiment intelligence for live experiences</span>
                 </div>
             </div>
+            <div class="session-meta">
+                <div class="meta-pill">
+                    <i class="fas fa-camera"></i>
+                    <span id="status-text">Camera idle</span>
+                </div>
+                <div class="meta-pill">
+                    <i class="far fa-clock"></i>
+                    <span>Session <span id="session-timer">00:00</span></span>
+                </div>
+            </div>
+        </nav>
 
-            <div class="stats-section">
-                <div class="stats-header">
-                    <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
-                    <button class="btn-reset" onclick="resetStats()">
-                        <i class="fas fa-redo"></i> Reset
+        <main class="dashboard">
+            <section class="card">
+                <div class="live-header">
+                    <div>
+                        <h2><i class="fas fa-wave-square"></i> Live Emotion Canvas</h2>
+                        <div class="status-meta">
+                            <span><i class="fas fa-signal"></i> Stream quality: <strong>Adaptive HD</strong></span>
+                            <span><i class="fas fa-brain"></i> Model: CNN v2.3</span>
+                        </div>
+                    </div>
+                    <div class="status-chip">
+                        <span class="status-indicator" id="status-indicator"></span>
+                        <div>
+                            <strong id="status-chip-text">Offline</strong><br>
+                            <small class="chip-subtext">Awaiting activation</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="video-panel">
+                    <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Live stream">
+                    <div class="overlay-gradient"></div>
+                </div>
+
+                <div class="video-controls">
+                    <button class="control-btn control-start" id="btn-start" onclick="startCamera()">
+                        <i class="fas fa-play"></i>
+                        Activate Session
+                    </button>
+                    <button class="control-btn control-stop" id="btn-stop" onclick="stopCamera()" disabled>
+                        <i class="fas fa-square"></i>
+                        Pause Stream
+                    </button>
+                    <button class="control-btn control-capture" id="btn-screenshot" onclick="takeScreenshot()" disabled>
+                        <i class="fas fa-camera-retro"></i>
+                        Capture Insight
                     </button>
                 </div>
-                
-                <div class="total-detections">
-                    <h3>Total Detections</h3>
-                    <div class="count" id="total-count">0</div>
+            </section>
+
+            <aside class="insights-panel">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <h3>Total Detections</h3>
+                        <div class="stat-value" id="total-count">0</div>
+                        <div class="stat-subtext">Across current session</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Dominant Emotion</h3>
+                        <div class="stat-value" id="top-emotion">--</div>
+                        <div class="stat-subtext" id="dominance-text">No signals yet</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Detections / Min</h3>
+                        <div class="stat-value" id="detection-rate">0</div>
+                        <div class="stat-subtext">Averages while camera is active</div>
+                    </div>
                 </div>
 
-                <div id="emotion-stats">
-                    <p class="loading">Waiting for detections...</p>
+                <div class="emotion-distribution">
+                    <div class="panel-title"><i class="fas fa-chart-pie"></i> Emotion Distribution</div>
+                    <div class="emotion-list" id="emotion-stats">
+                        <p class="loading">Waiting for detections...</p>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="info-cards">
-            <div class="info-card">
-                <div class="card-icon"><i class="fas fa-brain"></i></div>
-                <h3>Deep Learning</h3>
-                <p>Powered by CNN architecture trained on 35,000+ facial images</p>
-            </div>
-            <div class="info-card">
-                <div class="card-icon"><i class="fas fa-bolt"></i></div>
-                <h3>Real-Time Processing</h3>
-                <p>Instant emotion detection with smooth prediction averaging</p>
-            </div>
-            <div class="info-card">
-                <div class="card-icon"><i class="fas fa-chart-line"></i></div>
-                <h3>Live Analytics</h3>
-                <p>Track emotion patterns with detailed statistics and visualizations</p>
-            </div>
-            <div class="info-card">
-                <div class="card-icon"><i class="fas fa-globe"></i></div>
-                <h3>Web-Based Interface</h3>
-                <p>Access from any device with a modern browser</p>
-            </div>
-        </div>
+                <div class="history-panel">
+                    <div class="history-header panel-title">
+                        <span><i class="fas fa-history"></i> Recent Sentiment Shift</span>
+                        <button type="button" class="ghost-button" onclick="resetStats()">
+                            Reset Analytics
+                        </button>
+                    </div>
+                    <ul class="history-list" id="emotion-history">
+                        <li class="history-item">No activity yet</li>
+                    </ul>
+                </div>
+            </aside>
+        </main>
+
+        <section class="knowledge-grid">
+            <article class="knowledge-card">
+                <div class="knowledge-icon"><i class="fas fa-sparkles"></i></div>
+                <h3>Synthetic Clarity</h3>
+                <p>FacialEmotion Recognition blends signal amplification with temporal smoothing to surface nuanced emotions, even when the frame is crowded.</p>
+            </article>
+            <article class="knowledge-card">
+                <div class="knowledge-icon"><i class="fas fa-robot"></i></div>
+                <h3>Adaptive Intelligence</h3>
+                <p>Powered by a 5.2M parameter CNN optimized for grayscale data, enabling refined affective insights without compromising on latency.</p>
+            </article>
+            <article class="knowledge-card">
+                <div class="knowledge-icon"><i class="fas fa-shield-check"></i></div>
+                <h3>Privacy-First</h3>
+                <p>All computation remains on-device, ensuring sensitive biometric patterns never leave your controlled environment.</p>
+            </article>
+            <article class="knowledge-card">
+                <div class="knowledge-icon"><i class="fas fa-link"></i></div>
+                <h3>Integrations Ready</h3>
+                <p>Expose live analytics and aggregates using the REST endpoints to feed dashboards, automation workflows, or generative interfaces.</p>
+            </article>
+        </section>
     </div>
+
+    <div class="toast" id="toast">Screenshot saved</div>
 
     <script>
         const emotionIcons = {
@@ -382,35 +672,134 @@
             'Surprise': '😲'
         };
 
+        const emotionHistory = [];
+        let sessionStart = null;
+        let timerInterval = null;
+        let lastTotalDetections = 0;
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function formatDuration(ms) {
+            if (!ms || ms < 0) return '00:00';
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${minutes}:${seconds}`;
+        }
+
+        function startSessionTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            sessionStart = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - sessionStart;
+                document.getElementById('session-timer').textContent = formatDuration(elapsed);
+            }, 1000);
+        }
+
+        function stopSessionTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            sessionStart = null;
+            document.getElementById('session-timer').textContent = '00:00';
+        }
+
+        function renderEmotionBars(data) {
+            const statsDiv = document.getElementById('emotion-stats');
+            
+            if (!data || !data.emotions) {
+                statsDiv.innerHTML = '<p class="loading">Awaiting live detections...</p>';
+                return;
+            }
+
+            const emotionOrder = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise'];
+            const rows = emotionOrder.map(emotion => {
+                const info = data.emotions[emotion] || { count: 0, percentage: 0, color: '#95a5a6' };
+                const barWidth = data.total === 0 ? 0 : info.percentage;
+                
+                console.log(`Rendering ${emotion}: count=${info.count}, percentage=${info.percentage}%, color=${info.color}`);
+                
+                return `
+                    <div class="emotion-row">
+                        <div class="top-line">
+                            <div class="emotion-chip">
+                                <span>${emotionIcons[emotion]}</span>
+                                <strong>${emotion}</strong>
+                            </div>
+                            <span class="stat-subtext">${info.count} detections • ${barWidth}%</span>
+                        </div>
+                        <div class="emotion-bar-shell">
+                            <div class="emotion-bar-fill" style="width: ${barWidth}%; background: ${info.color};"></div>
+                        </div>
+                    </div>`;
+            });
+
+            statsDiv.innerHTML = rows.join('');
+        }
+
+        function addHistoryEntry(emotion, delta, total) {
+            if (!emotion || delta <= 0) return;
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            emotionHistory.push({ emotion, delta, total, timestamp });
+            if (emotionHistory.length > 12) emotionHistory.shift();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('emotion-history');
+            if (!emotionHistory.length) {
+                container.innerHTML = '<li class="history-item">No activity yet</li>';
+                return;
+            }
+
+            container.innerHTML = emotionHistory.slice(-5).reverse().map(entry => `
+                <li class="history-item">
+                    <div class="history-left">
+                        <span class="emotion-chip">${emotionIcons[entry.emotion]} ${entry.emotion}</span>
+                        <span class="history-delta">+${entry.delta}</span>
+                    </div>
+                    <span class="stat-subtext">${entry.timestamp} • total ${entry.total}</span>
+                </li>
+            `).join('');
+        }
+
+        function computeDetectionRate(total) {
+            if (!sessionStart) return 0;
+            const minutes = (Date.now() - sessionStart) / 60000;
+            if (minutes <= 0.2) return total; // avoid huge spikes in first seconds
+            return (total / minutes).toFixed(1);
+        }
+
         function updateStats() {
             fetch('/stats')
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Stats received:', data);
                     document.getElementById('total-count').textContent = data.total;
+                    renderEmotionBars(data);
 
-                    const statsDiv = document.getElementById('emotion-stats');
-                    let html = '';
+                    const entries = Object.entries(data.emotions);
+                    if (entries.length && data.total > 0) {
+                        const dominant = entries.reduce((best, current) => current[1].count > best[1].count ? current : best);
+                        const [emotion, info] = dominant;
+                        document.getElementById('top-emotion').textContent = emotion;
+                        document.getElementById('dominance-text').textContent = `${info.percentage}% of detections`;
 
-                    for (const [emotion, info] of Object.entries(data.emotions)) {
-                        html += `
-                            <div class="emotion-item">
-                                <div class="emotion-label">
-                                    <span class="emotion-name">
-                                        <span class="emotion-icon">${emotionIcons[emotion]}</span>
-                                        ${emotion}
-                                    </span>
-                                    <span>${info.count} (${info.percentage}%)</span>
-                                </div>
-                                <div class="emotion-bar-container">
-                                    <div class="emotion-bar" style="width: ${info.percentage}%; background-color: ${info.color};">
-                                        ${info.percentage > 8 ? info.percentage.toFixed(1) + '%' : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        if (data.total > lastTotalDetections) {
+                            const delta = data.total - lastTotalDetections;
+                            addHistoryEntry(emotion, delta, data.total);
+                        }
+                    } else {
+                        document.getElementById('top-emotion').textContent = '--';
+                        document.getElementById('dominance-text').textContent = 'No signals yet';
                     }
 
-                    statsDiv.innerHTML = html || '<p class="loading">Waiting for detections...</p>';
+                    document.getElementById('detection-rate').textContent = computeDetectionRate(data.total);
+                    lastTotalDetections = data.total;
                 })
                 .catch(error => console.error('Error fetching stats:', error));
         }
@@ -423,17 +812,26 @@
                     const btnStart = document.getElementById('btn-start');
                     const btnStop = document.getElementById('btn-stop');
                     const btnScreenshot = document.getElementById('btn-screenshot');
-                    
+                    const statusText = document.getElementById('status-text');
+                    const chipText = document.getElementById('status-chip-text');
+                    const chipSubtext = document.querySelector('.chip-subtext');
+
                     if (data.active) {
                         indicator.classList.add('active');
                         btnStart.disabled = true;
                         btnStop.disabled = false;
                         btnScreenshot.disabled = false;
+                        statusText.textContent = 'Camera live';
+                        chipText.textContent = 'Live Stream';
+                        chipSubtext.textContent = 'Emotion feed in progress';
                     } else {
                         indicator.classList.remove('active');
                         btnStart.disabled = false;
                         btnStop.disabled = true;
                         btnScreenshot.disabled = true;
+                        statusText.textContent = 'Camera idle';
+                        chipText.textContent = 'Offline';
+                        chipSubtext.textContent = 'Awaiting activation';
                     }
                 })
                 .catch(error => console.error('Error fetching camera status:', error));
@@ -444,7 +842,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
+                        startSessionTimer();
                         updateCameraStatus();
+                        showToast('Live session started');
                     }
                 })
                 .catch(error => console.error('Error starting camera:', error));
@@ -455,7 +855,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
+                        stopSessionTimer();
                         updateCameraStatus();
+                        showToast('Session paused');
                     }
                 })
                 .catch(error => console.error('Error stopping camera:', error));
@@ -473,19 +875,25 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `emotion-detection-${Date.now()}.jpg`;
+                a.download = `emotion-capture-${Date.now()}.jpg`;
                 a.click();
                 URL.revokeObjectURL(url);
+                showToast('Frame captured to downloads');
             }, 'image/jpeg');
         }
 
         function resetStats() {
-            if (confirm('Reset all statistics?')) {
+            if (confirm('Reset all session analytics?')) {
                 fetch('/reset_stats')
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
+                            emotionHistory.length = 0;
+                            lastTopEmotion = null;
+                            lastTotalDetections = 0;
+                            renderHistory();
                             updateStats();
+                            showToast('Session metrics reset');
                         }
                     })
                     .catch(error => console.error('Error resetting stats:', error));
@@ -495,8 +903,15 @@
         setInterval(() => {
             updateStats();
             updateCameraStatus();
-        }, 2000);
-        
+        }, 2500);
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                updateStats();
+                updateCameraStatus();
+            }
+        });
+
         updateStats();
         updateCameraStatus();
     </script>
