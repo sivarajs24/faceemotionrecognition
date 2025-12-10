@@ -24,9 +24,35 @@ wheels/
 .installed.cfg
 *.egg
 
-# Models
-models/*.h5
+# Virtual Environment
+venv/
+myenv/
+.venv/
+
+# Models & Data
+models/
 *.h5
+
+# Logs & Cache
+logs/
+*.log
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary Files
+*.tmp
+*.bak
+*.swp
 
 # Logs
 logs/*.log
